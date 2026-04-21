@@ -48,6 +48,9 @@ export default function Profile() {
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState('');
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ username: '', bio: '' });
+  const [editError, setEditError] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -123,7 +126,14 @@ export default function Profile() {
               <h1 className="text-2xl font-bold text-slate-900">
                 {profile?.username || '未设置昵称'}
               </h1>
-              <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+              <button
+                onClick={() => {
+                  setEditForm({ username: profile?.username || '', bio: profile?.bio || '' });
+                  setEditError('');
+                  setShowEditModal(true);
+                }}
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              >
                 <Edit className="w-4 h-4" />
               </button>
             </div>
@@ -150,6 +160,73 @@ export default function Profile() {
           </div>
         </div>
       </motion.div>
+
+      {showEditModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl p-6 w-full max-w-md mx-4"
+          >
+            <h3 className="text-xl font-bold text-slate-900 mb-4">编辑资料</h3>
+            {editError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">{editError}</div>
+            )}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">昵称</label>
+                <input
+                  type="text"
+                  value={editForm.username}
+                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="请输入昵称"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">简介</label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  rows={3}
+                  placeholder="介绍一下自己"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="flex-1 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={async () => {
+                  setEditError('');
+                  if (!editForm.username.trim()) {
+                    setEditError('昵称不能为空');
+                    return;
+                  }
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ username: editForm.username.trim(), bio: editForm.bio.trim() || null, updated_at: new Date().toISOString() })
+                    .eq('id', user!.id);
+                  if (error) {
+                    setEditError('保存失败：' + error.message);
+                  } else {
+                    setProfile(prev => prev ? { ...prev, username: editForm.username.trim(), bio: editForm.bio.trim() || null } : prev);
+                    setShowEditModal(false);
+                  }
+                }}
+                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                保存
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {showPasswordModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
