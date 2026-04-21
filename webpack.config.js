@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = (env, argv) => {
   const isDev = argv.mode !== 'production';
@@ -66,6 +67,9 @@ module.exports = (env, argv) => {
       new webpack.EnvironmentPlugin({
         SUPABASE_URL: '',
         SUPABASE_ANON_KEY: '',
+      }),
+      new CopyPlugin({
+        patterns: [{ from: 'public', to: '.' }]
       })
     ]
   };
