@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OPC合肥 - OPC资源交换与合肥本地活动通知平台</title>
+  <meta name="description" content="OPC合肥是OPC们交换资源、发布合肥本地活动通知的互助社区平台">
+  <meta itemprop="name" content="OPC合肥 - OPC资源交换与活动平台">
+  <meta itemprop="description" content="OPC们交换资源，发布合肥本地活动通知的互助社区">
+  <meta itemprop="image" content="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=630&fit=crop">
+  <meta property="og:title" content="OPC合肥 - OPC资源交换与活动平台">
+  <meta property="og:description" content="OPC们交换资源，发布合肥本地活动通知的互助社区">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=630&fit=crop">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://hefei.meoo.fun">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="OPC合肥">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="OPC合肥 - OPC资源交换与活动平台">
+  <meta name="twitter:description" content="OPC们交换资源，发布合肥本地活动通知的互助社区">
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1200&h=630&fit=crop">
+  <link rel="icon" type="image/png" href="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=64&h=64&fit=crop">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 内联样式确保主题色立即生效，避免闪烁 */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+    html.light, html.light body {
+      background-color: #ffffff !important;
+      color: #000000;
+    }
+    html.dark, html.dark body {
+      background-color: #1a1a1a !important;
+      color: #ffffff;
+    }
+  </style>
+  <script>
+    // 在 React 加载前立即设置主题，避免闪烁
+    (function() {
+      const isInIframe = window.self !== window.top;
+
+      function applyThemeToDOM(theme) {
+        document.documentElement.classList.remove('light', 'dark');
+        document.documentElement.classList.add(theme);
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+
+      if (isInIframe) {
+        // 监听父窗口主动推送的主题消息
+        window.addEventListener('message', function(event) {
+          if (event.data && typeof event.data.theme === 'string') {
+            const theme = event.data.theme;
+            if (theme === 'light' || theme === 'dark') {
+              applyThemeToDOM(theme);
+            }
+          }
+        });
+      } else {
+        // 非 iframe 环境，使用默认 light 主题
+        applyThemeToDOM('light');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>
