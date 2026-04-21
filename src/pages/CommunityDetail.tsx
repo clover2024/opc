@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabase/client';
-import { ArrowLeft, MapPin, Phone, User, MessageCircle, Building2 } from 'lucide-react';
-import { useWechatShare } from '../hooks/useWechatShare';
+import { ArrowLeft, MapPin, Phone, User, MessageCircle, Building2, Share2 } from 'lucide-react';
+import { useWechatShare, sharePage } from '../hooks/useWechatShare';
 
 interface Community {
   id: string;
@@ -71,6 +71,18 @@ export default function CommunityDetail() {
         <ArrowLeft className="w-4 h-4" />
         返回社区地图
       </button>
+
+      {community && (
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => sharePage({ title: community.name, desc: community.description || community.address, shareType: 'community', shareId: community.id })}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+            分享
+          </button>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
         <div className="flex items-start gap-4 mb-6">

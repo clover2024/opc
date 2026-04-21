@@ -11,9 +11,10 @@ import {
   Tag,
   MessageCircle,
   Edit,
-  Trash2
+  Trash2,
+  Share2
 } from 'lucide-react';
-import { useWechatShare } from '../hooks/useWechatShare';
+import { useWechatShare, sharePage } from '../hooks/useWechatShare';
 
 interface Resource {
   id: string;
@@ -125,6 +126,16 @@ export default function ResourceDetail() {
         <ArrowLeft className="w-4 h-4" />
         返回资源列表
       </button>
+
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => sharePage({ title: resource.title, desc: `[${resource.type}] ${resource.description?.slice(0, 60)}`, shareType: 'resource', shareId: resource.id })}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+        >
+          <Share2 className="w-4 h-4" />
+          分享
+        </button>
+      </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 md:p-8">

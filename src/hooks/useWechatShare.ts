@@ -29,6 +29,24 @@ function getShareLink(config?: Partial<ShareConfig>): string {
   return window.location.href;
 }
 
+export { getShareLink };
+
+export async function sharePage(config: { title: string; desc: string; shareType: string; shareId: string }) {
+  const url = `${SITE_URL}/api/share?type=${config.shareType}&id=${config.shareId}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: config.title, text: config.desc, url });
+      return;
+    } catch {}
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    alert('链接已复制，可粘贴分享到微信');
+  } catch {
+    prompt('请复制链接分享：', url);
+  }
+}
+
 function updateMetaTags(title: string, desc: string, image: string, url: string) {
   const setMeta = (attr: string, val: string, content: string) => {
     let el = document.querySelector(`meta[${attr}="${val}"]`) as HTMLMetaElement;
