@@ -210,12 +210,16 @@ export default function Profile() {
                   }
                   const { error } = await supabase
                     .from('profiles')
-                    .update({ username: editForm.username.trim(), bio: editForm.bio.trim() || null, updated_at: new Date().toISOString() })
-                    .eq('id', user!.id);
+                    .upsert({
+                      id: user!.id,
+                      username: editForm.username.trim(),
+                      bio: editForm.bio.trim() || null,
+                      updated_at: new Date().toISOString()
+                    });
                   if (error) {
                     setEditError('保存失败：' + error.message);
                   } else {
-                    setProfile(prev => prev ? { ...prev, username: editForm.username.trim(), bio: editForm.bio.trim() || null } : prev);
+                    setProfile(prev => prev ? { ...prev, username: editForm.username.trim(), bio: editForm.bio.trim() || null } : { id: user!.id, username: editForm.username.trim(), avatar_url: null, bio: editForm.bio.trim() || null, location: null });
                     setShowEditModal(false);
                   }
                 }}
