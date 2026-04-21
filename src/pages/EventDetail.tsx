@@ -51,7 +51,9 @@ export default function EventDetail() {
 
   useWechatShare(event ? {
     title: `${event.title} - OPC合肥活动`,
-    desc: `${event.location} | ${new Date(event.event_date).toLocaleDateString('zh-CN')}`
+    desc: `${event.location} | ${new Date(event.event_date).toLocaleDateString('zh-CN')}`,
+    shareType: 'event',
+    shareId: event.id
   } : undefined);
 
   useEffect(() => {

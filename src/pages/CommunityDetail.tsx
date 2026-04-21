@@ -23,7 +23,9 @@ export default function CommunityDetail() {
 
   useWechatShare(community ? {
     title: `${community.name} - OPC合肥社区`,
-    desc: community.description || `${community.name}，位于${community.address}`
+    desc: community.description || `${community.name}，位于${community.address}`,
+    shareType: 'community',
+    shareId: community.id
   } : undefined);
 
   useEffect(() => {

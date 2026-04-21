@@ -43,7 +43,9 @@ export default function ResourceDetail() {
 
   useWechatShare(resource ? {
     title: `${resource.title} - OPC合肥资源`,
-    desc: `[${resource.type}] ${resource.description?.slice(0, 60)}`
+    desc: `[${resource.type}] ${resource.description?.slice(0, 60)}`,
+    shareType: 'resource',
+    shareId: resource.id
   } : undefined);
 
   useEffect(() => {
