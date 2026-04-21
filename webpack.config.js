@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = (env, argv) => {
@@ -60,6 +61,10 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: './index.html',
         inject: 'body'
+      }),
+      new webpack.EnvironmentPlugin({
+        SUPABASE_URL: '',
+        SUPABASE_ANON_KEY: '',
       })
     ]
   };
