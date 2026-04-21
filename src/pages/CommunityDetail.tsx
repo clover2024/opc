@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabase/client';
 import { ArrowLeft, MapPin, Phone, User, MessageCircle, Building2 } from 'lucide-react';
+import { useWechatShare } from '../hooks/useWechatShare';
 
 interface Community {
   id: string;
@@ -19,6 +20,11 @@ export default function CommunityDetail() {
   const navigate = useNavigate();
   const [community, setCommunity] = useState<Community | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useWechatShare(community ? {
+    title: `${community.name} - OPC合肥社区`,
+    desc: community.description || `${community.name}，位于${community.address}`
+  } : undefined);
 
   useEffect(() => {
     if (id) fetchCommunity();

@@ -15,6 +15,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
+import { useWechatShare } from '../hooks/useWechatShare';
 
 interface Event {
   id: string;
@@ -47,6 +48,11 @@ export default function EventDetail() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+
+  useWechatShare(event ? {
+    title: `${event.title} - OPC合肥活动`,
+    desc: `${event.location} | ${new Date(event.event_date).toLocaleDateString('zh-CN')}`
+  } : undefined);
 
   useEffect(() => {
     fetchEvent();

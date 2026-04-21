@@ -3,16 +3,17 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  ArrowLeft, 
-  Package, 
-  User, 
-  Calendar, 
-  Tag, 
+import {
+  ArrowLeft,
+  Package,
+  User,
+  Calendar,
+  Tag,
   MessageCircle,
   Edit,
   Trash2
 } from 'lucide-react';
+import { useWechatShare } from '../hooks/useWechatShare';
 
 interface Resource {
   id: string;
@@ -39,6 +40,11 @@ export default function ResourceDetail() {
   const [resource, setResource] = useState<Resource | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useWechatShare(resource ? {
+    title: `${resource.title} - OPC合肥资源`,
+    desc: `[${resource.type}] ${resource.description?.slice(0, 60)}`
+  } : undefined);
 
   useEffect(() => {
     fetchResource();
