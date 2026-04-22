@@ -1,14 +1,14 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const { createClient } = require('@supabase/supabase-js');
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 const SITE_URL = 'https://opc.sustc.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
 const DEFAULT_TITLE = 'OPC合肥 - OPC资源交换与活动平台';
 const DEFAULT_DESC = 'OPC们交换资源，发布合肥本地活动通知的互助社区';
 
-function html(title: string, desc: string, image: string, redirect: string) {
+function html(title, desc, image, redirect) {
   return `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -38,15 +38,15 @@ function html(title: string, desc: string, image: string, redirect: string) {
 </html>`;
 }
 
-export default async function handler(req: Request) {
-  const url = new URL(req.url);
-  const type = url.searchParams.get('type');
-  const id = url.searchParams.get('id');
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+
+  const type = req.query?.type;
+  const id = req.query?.id;
 
   if (!type || !id) {
-    return new Response(html(DEFAULT_TITLE, DEFAULT_DESC, OG_IMAGE, `${SITE_URL}/`), {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    });
+    return res.status(200).send(html(DEFAULT_TITLE, DEFAULT_DESC, OG_IMAGE, `${SITE_URL}/`));
   }
 
   let title = DEFAULT_TITLE;
@@ -79,7 +79,5 @@ export default async function handler(req: Request) {
     // fallback to defaults
   }
 
-  return new Response(html(title, desc, OG_IMAGE, redirect), {
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
-  });
-}
+  res.status(200).send(html(title, desc, OG_IMAGE, redirect));
+};
