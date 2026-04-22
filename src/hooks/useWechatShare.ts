@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { supabase } from '../supabase/client';
 
 declare global {
   interface Window {
@@ -16,7 +17,6 @@ interface ShareConfig {
 
 const SITE_URL = 'https://opc.sustc.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
-const WX_SIGN_URL = 'https://7.maizi.tech/api/wx-sign';
 const DEFAULT_SHARE = {
   title: 'OPC合肥 - OPC资源交换与活动平台',
   desc: 'OPC们交换资源，发布合肥本地活动通知的互助社区',
@@ -42,20 +42,22 @@ async function initWxConfig() {
   if (!window.wx) return;
 
   const url = window.location.href.split('#')[0];
-  const res = await fetch(`${WX_SIGN_URL}?url=${encodeURIComponent(url)}`);
-  const data = await res.json();
+  const { data, error } = await supabase.functions.invoke('wechat-share', {
+    body: { url },
+  });
 
-  if (data.error) {
-    console.error('WX sign error:', data.error);
+  if (error || !data?.success) {
+    console.error('WX sign error:', error || data?.error);
     return;
   }
 
+  const sign = data.data;
   window.wx.config({
     debug: false,
-    appId: data.appId,
-    timestamp: data.timestamp,
-    nonceStr: data.nonceStr,
-    signature: data.signature,
+    appId: sign.appId,
+    timestamp: sign.timestamp,
+    nonceStr: sign.nonceStr,
+    signature: sign.signature,
     jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'],
   });
 
