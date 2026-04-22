@@ -10,7 +10,7 @@ async function getAccessToken() {
   const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${APPID}&secret=${APPSECRET}`;
   const res = await fetch(url);
   const data = await res.json();
-  if (data.errcode) throw new Error(`getAccessToken: ${data.errmsg}`);
+  if (data.errcode) throw new Error(`getAccessToken: ${data.errmsg} rid: ${data.rid || ''}`);
   tokenCache = { value: data.access_token, expire: now + (data.expires_in - 300) * 1000 };
   return data.access_token;
 }
@@ -28,12 +28,12 @@ async function getJsApiTicket() {
 }
 
 function sign(ticket, nonceStr, timestamp, url) {
-  const str = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
   const crypto = require('crypto');
+  const str = `jsapi_ticket=${ticket}&noncestr=${nonceStr}&timestamp=${timestamp}&url=${url}`;
   return crypto.createHash('sha1').update(str).digest('hex');
 }
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Cache-Control', 'no-cache');
@@ -42,6 +42,10 @@ export default async function handler(req, res) {
 
   const url = req.query?.url || '';
   if (!url) return res.status(400).json({ error: 'missing url' });
+
+  if (!APPID || !APPSECRET) {
+    return res.status(500).json({ error: `env missing: WX_APPID=${APPID ? 'set' : 'EMPTY'}, WX_APPSECRET=${APPSECRET ? 'set' : 'EMPTY'}` });
+  }
 
   try {
     const ticket = await getJsApiTicket();
@@ -52,4 +56,4 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
