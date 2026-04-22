@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { supabase } from '../supabase/client';
 
 declare global {
   interface Window {
@@ -17,16 +16,75 @@ interface ShareConfig {
 
 const SITE_URL = 'https://opc.sustc.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
+const WX_SIGN_URL = `${SITE_URL}/api/wx-sign`;
 const DEFAULT_SHARE = {
   title: 'OPC合肥 - OPC资源交换与活动平台',
   desc: 'OPC们交换资源，发布合肥本地活动通知的互助社区',
 };
 
-function getShareLink(config?: Partial<ShareConfig>): string {
-  if (config?.shareType && config?.shareId) {
-    return `${SITE_URL}/api/share?type=${config.shareType}&id=${config.shareId}`;
+let wxLoaded = false;
+let wxReady = false;
+let pendingShare: { title: string; desc: string; link: string; imgUrl: string } | null = null;
+
+function loadWxSdk(): Promise<void> {
+  if (wxLoaded) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://res.wx.qq.com/open/js/jweixin-1.6.0.js';
+    script.onload = () => { wxLoaded = true; resolve(); };
+    script.onerror = () => reject(new Error('Failed to load WeChat JS-SDK'));
+    document.head.appendChild(script);
+  });
+}
+
+async function initWxConfig() {
+  if (wxReady) return;
+  if (!window.wx) return;
+
+  const url = window.location.href.split('#')[0];
+  const res = await fetch(`${WX_SIGN_URL}?url=${encodeURIComponent(url)}`);
+  const data = await res.json();
+
+  if (data.error) {
+    console.error('WX sign error:', data.error);
+    return;
   }
-  return window.location.href;
+
+  window.wx.config({
+    debug: false,
+    appId: data.appId,
+    timestamp: data.timestamp,
+    nonceStr: data.nonceStr,
+    signature: data.signature,
+    jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'],
+  });
+
+  window.wx.ready(() => {
+    wxReady = true;
+    if (pendingShare) {
+      applyShareData(pendingShare);
+      pendingShare = null;
+    }
+  });
+
+  window.wx.error((err: any) => {
+    console.error('WX config error:', err);
+  });
+}
+
+function applyShareData(data: { title: string; desc: string; link: string; imgUrl: string }) {
+  if (!window.wx) return;
+  window.wx.updateAppMessageShareData({
+    title: data.title,
+    desc: data.desc,
+    link: data.link,
+    imgUrl: data.imgUrl,
+  });
+  window.wx.updateTimelineShareData({
+    title: data.title,
+    link: data.link,
+    imgUrl: data.imgUrl,
+  });
 }
 
 function updateMetaTags(title: string, desc: string, image: string, url: string) {
@@ -65,62 +123,27 @@ export function useWechatShare(config?: Partial<ShareConfig>) {
   const title = config?.title || DEFAULT_SHARE.title;
   const desc = config?.desc || DEFAULT_SHARE.desc;
   const image = config?.imgUrl || OG_IMAGE;
-  const link = getShareLink(config);
+  const link = window.location.href;
 
   useEffect(() => {
     updateMetaTags(title, desc, image, link);
 
-    const isWechat = /MicroMessenger/i.test(navigator.userAgent);
-    if (!isWechat || !window.wx) return;
+    const isWechat = /micromessenger/i.test(navigator.userAgent);
+    if (!isWechat) return;
 
-    const initWechatShare = async () => {
+    (async () => {
       try {
-        // 1. Get signing data from backend
-        const { data, error } = await supabase.functions.invoke('wechat-share', {
-          body: { url: window.location.href.split('#')[0] }
-        });
-
-        if (error || !data?.success) {
-          console.error('微信签名失败:', error || data);
-          return;
+        await loadWxSdk();
+        await initWxConfig();
+        const shareData = { title, desc, link, imgUrl: image };
+        if (wxReady) {
+          applyShareData(shareData);
+        } else {
+          pendingShare = shareData;
         }
-
-        // 2. Call wx.config to initialize JS-SDK
-        window.wx.config({
-          debug: false,
-          appId: data.data.appId,
-          timestamp: data.data.timestamp,
-          nonceStr: data.data.nonceStr,
-          signature: data.data.signature,
-          jsApiList: [
-            'updateAppMessageShareData',
-            'updateTimelineShareData'
-          ]
-        });
-
-        // 3. After config is ready, set share data
-        window.wx.ready(() => {
-          window.wx.updateAppMessageShareData({
-            title,
-            desc,
-            link,
-            imgUrl: image
-          });
-          window.wx.updateTimelineShareData({
-            title,
-            link,
-            imgUrl: image
-          });
-        });
-
-        window.wx.error((res: any) => {
-          console.error('微信JS-SDK配置失败:', res);
-        });
-      } catch (err) {
-        console.error('微信分享初始化失败:', err);
+      } catch (e) {
+        console.error('WX share setup failed:', e);
       }
-    };
-
-    initWechatShare();
+    })();
   }, [title, desc, image, link]);
 }
