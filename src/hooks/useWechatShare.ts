@@ -29,24 +29,6 @@ function getShareLink(config?: Partial<ShareConfig>): string {
   return window.location.href;
 }
 
-export { getShareLink };
-
-export async function sharePage(config: { title: string; desc: string; shareType: string; shareId: string }) {
-  const url = `${SITE_URL}/api/share?type=${config.shareType}&id=${config.shareId}`;
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: config.title, text: config.desc, url });
-      return;
-    } catch {}
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    alert('链接已复制，可粘贴分享到微信');
-  } catch {
-    prompt('请复制链接分享：', url);
-  }
-}
-
 function updateMetaTags(title: string, desc: string, image: string, url: string) {
   const setMeta = (attr: string, val: string, content: string) => {
     let el = document.querySelector(`meta[${attr}="${val}"]`) as HTMLMetaElement;
@@ -89,25 +71,51 @@ export function useWechatShare(config?: Partial<ShareConfig>) {
     updateMetaTags(title, desc, image, link);
 
     const isWechat = /MicroMessenger/i.test(navigator.userAgent);
-    if (!isWechat) return;
+    if (!isWechat || !window.wx) return;
 
     const initWechatShare = async () => {
       try {
-        const { data } = await supabase.functions.invoke('wechat-share', {
-          body: {
-            url: window.location.href.split('#')[0],
-            title,
-            description: desc,
-            image
-          }
+        // 1. Get signing data from backend
+        const { data, error } = await supabase.functions.invoke('wechat-share', {
+          body: { url: window.location.href.split('#')[0] }
         });
 
-        if (data?.success && window.wx) {
-          window.wx.ready(() => {
-            window.wx.updateAppMessageShareData({ title, desc, link, imgUrl: image });
-            window.wx.updateTimelineShareData({ title, link, imgUrl: image });
-          });
+        if (error || !data?.success) {
+          console.error('微信签名失败:', error || data);
+          return;
         }
+
+        // 2. Call wx.config to initialize JS-SDK
+        window.wx.config({
+          debug: false,
+          appId: data.data.appId,
+          timestamp: data.data.timestamp,
+          nonceStr: data.data.nonceStr,
+          signature: data.data.signature,
+          jsApiList: [
+            'updateAppMessageShareData',
+            'updateTimelineShareData'
+          ]
+        });
+
+        // 3. After config is ready, set share data
+        window.wx.ready(() => {
+          window.wx.updateAppMessageShareData({
+            title,
+            desc,
+            link,
+            imgUrl: image
+          });
+          window.wx.updateTimelineShareData({
+            title,
+            link,
+            imgUrl: image
+          });
+        });
+
+        window.wx.error((res: any) => {
+          console.error('微信JS-SDK配置失败:', res);
+        });
       } catch (err) {
         console.error('微信分享初始化失败:', err);
       }

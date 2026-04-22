@@ -9,14 +9,13 @@ import {
   Users,
   Clock,
   ArrowLeft,
-  Share2,
   UserPlus,
   CheckCircle,
   XCircle,
   Edit,
   Trash2
 } from 'lucide-react';
-import { useWechatShare, sharePage } from '../hooks/useWechatShare';
+import { useWechatShare } from '../hooks/useWechatShare';
 
 interface Event {
   id: string;
@@ -195,18 +194,6 @@ export default function EventDetail() {
         <ArrowLeft className="w-5 h-5" />
         返回活动列表
       </button>
-
-      {event && (
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={() => sharePage({ title: event.title, desc: `${event.location} | ${new Date(event.event_date).toLocaleDateString('zh-CN')}`, shareType: 'event', shareId: event.id })}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-          >
-            <Share2 className="w-4 h-4" />
-            分享
-          </button>
-        </div>
-      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         {event.images && event.images.length > 0 && (
