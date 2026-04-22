@@ -16,7 +16,7 @@ interface ShareConfig {
 
 const SITE_URL = 'https://opc.sustc.com';
 const OG_IMAGE = `${SITE_URL}/logo.png`;
-const WX_SIGN_URL = `${SITE_URL}/api/wx-sign`;
+const WX_SIGN_URL = 'https://7.maizi.tech/api/wx-sign';
 const DEFAULT_SHARE = {
   title: 'OPC合肥 - OPC资源交换与活动平台',
   desc: 'OPC们交换资源，发布合肥本地活动通知的互助社区',

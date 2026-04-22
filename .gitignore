@@ -104,3 +104,4 @@ vendor/
 .stats
 .config
 .accesslog
+.vercel
